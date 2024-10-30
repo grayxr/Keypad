@@ -32,7 +32,7 @@
 #include <Keypad.h>
 
 // <<constructor>> Allows custom keymap, pin configuration, and keypad sizes.
-Keypad::Keypad(char *userKeymap, byte *row, byte *col, byte numRows, byte numCols) {
+Keypad::Keypad(char *userKeymap, uint8_t *row, uint8_t *col, uint8_t numRows, uint8_t numCols) {
 	rowPins = row;
 	columnPins = col;
 	sizeKpd.rows = numRows;
@@ -82,15 +82,15 @@ bool Keypad::getKeys() {
 // Private : Hardware scan
 void Keypad::scanKeys() {
 	// Re-intialize the row pins. Allows sharing these pins with other hardware.
-	for (byte r=0; r<sizeKpd.rows; r++) {
+	for (uint8_t r=0; r<sizeKpd.rows; r++) {
 		pin_mode(rowPins[r],INPUT_PULLUP);
 	}
 
 	// bitMap stores ALL the keys that are being pressed.
-	for (byte c=0; c<sizeKpd.columns; c++) {
+	for (uint8_t c=0; c<sizeKpd.columns; c++) {
 		pin_mode(columnPins[c],OUTPUT);
 		pin_write(columnPins[c], LOW);	// Begin column pulse output.
-		for (byte r=0; r<sizeKpd.rows; r++) {
+		for (uint8_t r=0; r<sizeKpd.rows; r++) {
 			bitWrite(bitMap[r], c, !pin_read(rowPins[r]));  // keypress is active low so invert to high.
 		}
 		// Set pin to high impedance input. Effectively ends column pulse.
@@ -105,7 +105,7 @@ bool Keypad::updateList() {
 	bool anyActivity = false;
 
 	// Delete any IDLE keys
-	for (byte i=0; i<LIST_MAX; i++) {
+	for (uint8_t i=0; i<LIST_MAX; i++) {
 		if (key[i].kstate==IDLE) {
 			key[i].kchar = NO_KEY;
 			key[i].kcode = -1;
@@ -114,8 +114,8 @@ bool Keypad::updateList() {
 	}
 
 	// Add new keys to empty slots in the key list.
-	for (byte r=0; r<sizeKpd.rows; r++) {
-		for (byte c=0; c<sizeKpd.columns; c++) {
+	for (uint8_t r=0; r<sizeKpd.rows; r++) {
+		for (uint8_t c=0; c<sizeKpd.columns; c++) {
 			boolean button = bitRead(bitMap[r],c);
 			char keyChar = keymap[r * sizeKpd.columns + c];
 			int keyCode = r * sizeKpd.columns + c;
@@ -126,7 +126,7 @@ bool Keypad::updateList() {
 			}
 			// Key is NOT on the list so add it.
 			if ((idx == -1) && button) {
-				for (byte i=0; i<LIST_MAX; i++) {
+				for (uint8_t i=0; i<LIST_MAX; i++) {
 					if (key[i].kchar==NO_KEY) {		// Find an empty slot or don't add key to list.
 						key[i].kchar = keyChar;
 						key[i].kcode = keyCode;
@@ -140,7 +140,7 @@ bool Keypad::updateList() {
 	}
 
 	// Report if the user changed the state of any key.
-	for (byte i=0; i<LIST_MAX; i++) {
+	for (uint8_t i=0; i<LIST_MAX; i++) {
 		if (key[i].stateChanged) anyActivity = true;
 	}
 
@@ -149,7 +149,7 @@ bool Keypad::updateList() {
 
 // Private
 // This function is a state machine but is also used for debouncing the keys.
-void Keypad::nextKeyState(byte idx, boolean button) {
+void Keypad::nextKeyState(uint8_t idx, boolean button) {
 	key[idx].stateChanged = false;
 
 	switch (key[idx].kstate) {
@@ -176,7 +176,7 @@ void Keypad::nextKeyState(byte idx, boolean button) {
 
 // New in 2.1
 bool Keypad::isPressed(char keyChar) {
-	for (byte i=0; i<LIST_MAX; i++) {
+	for (uint8_t i=0; i<LIST_MAX; i++) {
 		if ( key[i].kchar == keyChar ) {
 			if ( (key[i].kstate == PRESSED) && key[i].stateChanged )
 				return true;
@@ -188,7 +188,7 @@ bool Keypad::isPressed(char keyChar) {
 // Search by character for a key in the list of active keys.
 // Returns -1 if not found or the index into the list of active keys.
 int Keypad::findInList (char keyChar) {
-	for (byte i=0; i<LIST_MAX; i++) {
+	for (uint8_t i=0; i<LIST_MAX; i++) {
 		if (key[i].kchar == keyChar) {
 			return i;
 		}
@@ -199,7 +199,7 @@ int Keypad::findInList (char keyChar) {
 // Search by code for a key in the list of active keys.
 // Returns -1 if not found or the index into the list of active keys.
 int Keypad::findInList (int keyCode) {
-	for (byte i=0; i<LIST_MAX; i++) {
+	for (uint8_t i=0; i<LIST_MAX; i++) {
 		if (key[i].kcode == keyCode) {
 			return i;
 		}
@@ -244,7 +244,7 @@ void Keypad::addEventListener(void (*listener)(char)){
 	keypadEventListener = listener;
 }
 
-void Keypad::transitionTo(byte idx, KeyState nextState) {
+void Keypad::transitionTo(uint8_t idx, KeyState nextState) {
 	key[idx].kstate = nextState;
 	key[idx].stateChanged = true;
 
